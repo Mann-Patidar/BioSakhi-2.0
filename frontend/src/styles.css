@@ -25,3 +25,32 @@ button:focus-visible { outline: 3px solid rgba(22, 139, 130, .35); outline-offse
     transition-duration: 0.01ms !important;
   }
 }
+
+.form-input {
+  display: block;
+  width: 100%;
+  border: 1px solid #dbe4df;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px 12px;
+  color: #18332b;
+  font: inherit;
+  font-size: 14px;
+}
+.form-input::placeholder { color: #94a3a0; }
+.form-input:focus { outline: 2px solid rgba(22, 139, 130, .22); border-color: #168b82; }
+
+/* Main navigation wraps onto additional rows on small screens instead of showing a horizontal scrollbar. */
+nav[aria-label="Main navigation"] {
+  overflow-x: hidden;
+  overflow-y: hidden;
+  flex-wrap: wrap;
+  scrollbar-width: none;
+}
+nav[aria-label="Main navigation"]::-webkit-scrollbar { display: none; }
+nav[aria-label="Main navigation"] button { white-space: normal; }
+
+/* Use a font stack with reliable Devanagari glyph coverage for Hindi mode. */
+[lang="hi"] {
+  font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", system-ui, sans-serif;
+}
