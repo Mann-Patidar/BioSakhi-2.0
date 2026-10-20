@@ -60,12 +60,12 @@ def now_iso() -> str:
 
 def initial_reading() -> dict:
     return {
-        "temperature_c": 29.1,
+        "temperature_c": 32.5,
         "ph": 7.2,
-        "tank_level_pct": 54.0,
-        "gas_ppm": 24.0,
-        "sludge_level_pct": 31.0,
-        "device_id": "biosakhi-demo",
+        "tank_level_pct": 65.0,
+        "gas_ppm": 120.0,
+        "sludge_level_pct": 40.0,
+        "device_id": "BS-ESP32-001",
         "timestamp": now_iso(),
     }
 
@@ -88,15 +88,16 @@ for _ in range(8):
     add_history(latest)
 
 def simulate_reading() -> dict:
+    """Stable prototype values for the dashboard; these are not live sensor data."""
     global latest
     with lock:
         latest = {
-            "temperature_c": round(max(18, min(42, latest["temperature_c"] + uniform(-0.25, 0.25))), 1),
-            "ph": round(max(5.0, min(9.5, latest["ph"] + uniform(-0.04, 0.04))), 2),
-            "tank_level_pct": round(max(0, min(100, latest["tank_level_pct"] + uniform(-0.5, 0.8))), 1),
-            "gas_ppm": round(max(0, latest["gas_ppm"] + uniform(-1.8, 2.2)), 1),
-            "sludge_level_pct": round(max(0, min(100, latest["sludge_level_pct"] + uniform(-0.15, 0.25))), 1),
-            "device_id": "biosakhi-demo",
+            "temperature_c": 32.5,
+            "ph": 7.2,
+            "tank_level_pct": 65.0,
+            "gas_ppm": 120.0,
+            "sludge_level_pct": 40.0,
+            "device_id": "BS-ESP32-001",
             "timestamp": now_iso(),
         }
         add_history(latest)
