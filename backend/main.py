@@ -3,7 +3,7 @@ from random import uniform
 from threading import Lock
 from typing import List, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -41,6 +41,20 @@ class HistoryPoint(BaseModel):
     ph: float
     tank_level_pct: float
 
+class ComplaintCreate(BaseModel):
+    name: str = ""
+    village: str = Field(min_length=1, max_length=120)
+    location: str = Field(min_length=1, max_length=240)
+    category: str = Field(min_length=1, max_length=120)
+    description: str = Field(min_length=8, max_length=3000)
+    contact: str = Field(default="", max_length=40)
+    created_at: Optional[str] = None
+    status: str = "Open"
+    priority: str = "Normal"
+
+class ComplaintStatusUpdate(BaseModel):
+    status: str = Field(pattern="^(Open|Assigned|In progress|Resolved)$")
+
 def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -57,6 +71,8 @@ def initial_reading() -> dict:
 
 latest = initial_reading()
 history: List[dict] = []
+complaints: List[dict] = []
+next_complaint_number = 1
 
 def add_history(reading: dict) -> None:
     point = {
@@ -136,3 +152,33 @@ def enable_demo():
         for _ in range(8):
             add_history(latest)
     return {"demo_mode": True, "message": "Demo readings enabled"}
+
+
+@app.get("/api/complaints")
+def list_complaints():
+    """Return complaints submitted to this running prototype API."""
+    with lock:
+        return {"complaints": list(reversed(complaints))}
+
+@app.post("/api/complaints", status_code=201)
+def create_complaint(payload: ComplaintCreate):
+    """Create a complaint. Prototype records are held in memory, not a database."""
+    global next_complaint_number
+    complaint = payload.model_dump()
+    complaint["id"] = f"BS-C-{next_complaint_number:04d}"
+    complaint["created_at"] = complaint.get("created_at") or now_iso()
+    complaint["status"] = "Open"
+    with lock:
+        next_complaint_number += 1
+        complaints.append(complaint)
+    return {"accepted": True, "complaint": complaint}
+
+@app.patch("/api/complaints/{complaint_id}")
+def update_complaint(complaint_id: str, payload: ComplaintStatusUpdate):
+    """Allow the prototype worker view to update complaint status."""
+    with lock:
+        for complaint in complaints:
+            if complaint["id"] == complaint_id:
+                complaint["status"] = payload.status
+                return {"updated": True, "complaint": complaint}
+    raise HTTPException(status_code=404, detail="Complaint not found")
